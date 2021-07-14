@@ -1,6 +1,7 @@
 import { AxiosRequestConfig } from './types/index'
 import { buildURL } from './helpers/url'
 import xhr from './xhr'
+import { transformRequest } from './helpers/data'
 
 function axios(config: AxiosRequestConfig) {
   transformConfig(config)
@@ -9,6 +10,11 @@ function axios(config: AxiosRequestConfig) {
 
 function transformConfig(config: AxiosRequestConfig) {
   config.url = transformUrl(config)
+  config.data = transformRequestData(config)
+}
+
+function transformRequestData(config: AxiosRequestConfig) {
+  return transformRequest(config.data)
 }
 
 function transformUrl(config: AxiosRequestConfig) {

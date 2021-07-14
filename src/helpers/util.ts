@@ -4,6 +4,6 @@ export function isDate(val: any): val is Date /* 谓词保护，断定val是Date
   return toString.call(val) === '[object Date]'
 }
 
-export function isObject(val: any): boolean {
+export function isPlainObject(val: any): boolean {
   return toString.call(val) === '[object Object]'
 }
