@@ -1,4 +1,3 @@
-import { normalize } from 'path'
 import { isPlainObject } from './util'
 
 function normalizeHeaderName(headers: any, normalizeName: string): void {
@@ -23,4 +22,27 @@ export function processHeaders(headers: any, data: any):any {
     }
   }
   return headers
+}
+
+// 解析 headers
+export function parseHeaders(headers: string): any {
+  const parse = Object.create(null)
+  if (!headers) {
+    return parse
+  }
+
+  headers.split('\r\n').forEach(line => {
+    let [ key, val ] = line.split(':')
+
+    if (!key) {
+      return
+    }
+
+    if (val) {
+      val = val.trim()
+    }
+    parse[key] = val
+
+  })
+  return parse
 }
