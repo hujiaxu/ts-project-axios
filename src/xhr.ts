@@ -4,14 +4,36 @@ import { parseHeaders } from './helpers/headers'
 export default function xhr(config: AxiosRequestConfig): AxiosPromise {
   return new Promise((resolve, reject) => {
 
-    const { data = null, url, method = 'get', headers = {}, responseType } = config
+    const { data = null, url, method = 'get', headers = {}, responseType, timeout } = config
 
     const request = new XMLHttpRequest()
+
+    if (timeout) {
+      request.timeout = timeout
+    }
   
     request.open(method.toLocaleUpperCase(), url, true)
 
+    request.onerror = function handleError() {
+      reject(new Error('Network Error'))
+    }
+    request.ontimeout = function handleTimeout() {
+      reject(new Error(`Timeout of ${timeout} ms exceeded`))
+    }
     request.onreadystatechange = function handleLoad() {
+
+      // request.readyState === 0 unsent
+      // request.readyState === 1 opened
+      // request.readyState === 2 headers_received
+      // request.readyState === 3 loading
+      // request.readyState === 4 done
       if (request.readyState !== 4) {
+        return
+      }
+      // Before the request completes, the value of status is 0. 
+      // Browsers also report a status of 0 in case of XMLHttpRequest errors.
+      // 当出现网络错误或者超市错误的时候，request.status的值都为0
+      if (request.status === 0) {
         return
       }
 
@@ -25,8 +47,18 @@ export default function xhr(config: AxiosRequestConfig): AxiosPromise {
         config,
         request
       }
-      resolve(response)
+      handleResponse(response)
     }
+
+    // 进一步的错误处理，对于状态码在 200 ~ 300 之外的相应做错误处理
+    function handleResponse(response: AxiosResponse) {
+      if (response.status >= 200 && response.status < 300) {
+        resolve(response)
+      } else {
+        reject(new Error(`Request failed with status code ${response.status}`))
+      }
+    }
+
   
     Object.keys(headers).forEach(name => {
       if (data === null && name.toLocaleLowerCase() === 'content-type') {
